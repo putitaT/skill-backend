@@ -55,4 +55,33 @@ test.describe("Get Skill", () => {
     await request.delete(domain + "/api/v1/skills/" + String(keySkill1.data.Key))
     await request.delete(domain + "/api/v1/skills/" + String(keySkill2.data.Key))
   });
+
+  test('should respond one skill when get by key from /api/v1/skills/:key', async ({ request }) => {
+    const addSkill = await request.post(domain + "/api/v1/skills",
+      {
+        data: {
+          Key: "tailwind3",
+          Name: "Tailwind CSS",
+          Description: "css...",
+          Logo: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg",
+          Tags: ["CSS"]
+        }        
+      }
+    )
+    const keySkill = await addSkill.json()
+    const resp = await request.get(domain + "/api/v1/skills/" + String(keySkill.data.Key))
+    expect(resp.ok()).toBeTruthy()
+    expect(await resp.json()).toEqual(
+      expect.objectContaining({
+        data: {
+          Key: "tailwind3",
+          Name: "Tailwind CSS",
+          Description: "css...",
+          Logo: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg",
+          Tags: ["CSS"]
+        }
+      })
+    )
+    await request.delete(domain + "/api/v1/skills/" + String(keySkill.data.Key))
+  });
 })
