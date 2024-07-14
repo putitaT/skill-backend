@@ -458,3 +458,48 @@ test.describe("Update Skill", () => {
     )
   });
 })
+
+test.describe("Delete Skill", () => {
+  test('should respond Skill deleted from request DELETE /api/v1/skills/:key', async ({ request }) => {
+    const addSkill = await request.post(domain + "/api/v1/skills",
+      {
+        data: {
+          Key: "typescript",
+          Name: "Typescript",
+          Description: "TypeScript...",
+          Logo: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg",
+          Tags: ["programming language", "scripting"]
+        }
+      }
+    )
+    const keySkill = await addSkill.json()
+    const deleteResp = await request.delete(domain + "/api/v1/skills/" + String(keySkill.data.Key))
+    expect(deleteResp.ok()).toBeTruthy()
+    expect(await deleteResp.json()).toEqual(
+      expect.objectContaining({
+        message: "Skill deleted",
+        status: "success"
+      })
+    )
+
+    const getByKey = await request.get(domain + "/api/v1/skills/" + String(keySkill.data.Key))
+    expect(getByKey.status()).toBe(404);
+    expect(await getByKey.json()).toEqual(
+      expect.objectContaining({
+        message: "Skill not found",
+        status: "error"
+      })
+    )
+  });
+
+  test('should respond error when delete by key that not found from request DELETE /api/v1/skills/:key', async ({ request }) => {
+    const deleteResp = await request.delete(domain + "/api/v1/skills/" + "typescripttt")
+    expect(deleteResp.status()).toBe(404)
+    expect(await deleteResp.json()).toEqual(
+      expect.objectContaining({
+        message: "Skill key invalid",
+        status: "error"
+      })
+    )
+  });
+})
