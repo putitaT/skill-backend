@@ -317,4 +317,74 @@ test.describe("Update Skill", () => {
       })
     )
   });
+
+  test('should respond skill that update when update Logo from request PATCH /api/v1/skills/:key', async ({ request }) => {
+    const addSkill = await request.post(domain + "/api/v1/skills",
+      {
+        data: {
+          Key: "typescript",
+          Name: "Typescript",
+          Description: "TypeScript...",
+          Logo: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg",
+          Tags: ["programming language", "scripting"]
+        }
+      }
+    )
+    const keySkill = await addSkill.json()
+    const resp = await request.patch(domain + "/api/v1/skills/" + String(keySkill.data.Key + "/actions/logo"),
+      {
+        data: {
+          Logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Typescript_logo_2020.svg/1200px-Typescript_logo_2020.svg.png"
+        }
+      }
+    )
+    expect(resp.ok()).toBeTruthy()
+    const updateResp = await resp.json()
+    expect(await resp.json()).toEqual(
+      expect.objectContaining({
+        data: {
+          Key: "typescript",
+          Name: "Typescript",
+          Description: "TypeScript...",
+          Logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Typescript_logo_2020.svg/1200px-Typescript_logo_2020.svg.png",
+          Tags: ["programming language", "scripting"]
+        },
+        status: "success"
+      })
+    )
+
+    const getByKey = await request.get(domain + "/api/v1/skills/" + String(updateResp.data.Key))
+    const getByKeyResp = await getByKey.json()
+    expect(getByKey.ok()).toBeTruthy()
+    expect(await getByKey.json()).toEqual(
+      expect.objectContaining({
+        data: {
+          Key: "typescript",
+          Name: "Typescript",
+          Description: "TypeScript...",
+          Logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Typescript_logo_2020.svg/1200px-Typescript_logo_2020.svg.png",
+          Tags: ["programming language", "scripting"]
+        },
+        status: "success"
+      })
+    )
+    await request.delete(domain + "/api/v1/skills/" + String(getByKeyResp.data.Key))
+  });
+
+  test('should respond error when update Logo that not found key from request PATCH /api/v1/skills/:key', async ({ request }) => {
+    const resp = await request.patch(domain + "/api/v1/skills/" + "typescripttt" + "/actions/logo",
+      {
+        data: {
+          Logo: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg"
+        }
+      }
+    )
+    expect(resp.status()).toBe(404);
+    expect(await resp.json()).toEqual(
+      expect.objectContaining({
+        message: expect.any(String),
+        status: "error"
+      })
+    )
+  });
 })
