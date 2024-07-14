@@ -98,6 +98,42 @@ test.describe("Get Skill", () => {
   });
 })
 
+test.describe("Add Skill", () => {
+  test('should respond Skill already exists when add duplicate key from POST /api/v1/skills', async ({ request }) => {
+    const addSkill1 = await request.post(domain + "/api/v1/skills",
+      {
+        data: {
+          Key: "gobasic",
+          Name: "Go Basic",
+          Description: "Go...",
+          Logo: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg",
+          Tags: ["programming language"]
+        }
+      }
+    )
+    const addSkill2 = await request.post(domain + "/api/v1/skills",
+      {
+        data: {
+          Key: "gobasic",
+          Name: "Go Basic",
+          Description: "Go...",
+          Logo: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg",
+          Tags: ["programming language"]
+        }
+      }
+    )
+    expect(addSkill2.status()).toBe(404)
+    expect(await addSkill2.json()).toEqual(
+      expect.objectContaining({
+        message: "Skill already exists",
+        status: "error"
+      })
+    )
+    const keySkill1 = await addSkill1.json()
+    await request.delete(domain + "/api/v1/skills/" + String(keySkill1.data.Key))
+  });
+})
+
 test.describe("Update Skill", () => {
   test('should respond skill that update when update by key from request PUT /api/v1/skills/:key', async ({ request }) => {
     const addSkill = await request.post(domain + "/api/v1/skills",
